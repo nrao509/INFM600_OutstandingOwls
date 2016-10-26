@@ -1,0 +1,43 @@
+---
+title: "Untitled"
+author: "Mary Kendig"
+date: "October 26, 2016"
+output: pdf_document
+---
+```{r}
+
+# Installs Packages 
+installed.packages("tidyr")
+library(tidyr)
+
+mydata <- read.csv("C:/Users/Mary/Documents/Other Files/R/Try This/Practice R Space/r_programming_bsos_winter2016 WORKING FILE/Notes/infm600data.csv")
+
+#Separates Location column into three separate columns 
+names(mydata)[names(mydata)=="Location"] <- "Volcano"
+mydata <- separate(mydata, "Volcano", c("DistanceInKilo", "DirectionVolcano" ), sep = "km") %>% separate("DirectionVolcano", c("Direction", "Volcano"), sep = "of")
+mydata <- separate(mydata, Depth, c("DepthInKilo", "Units"), sep = "km")
+
+
+# Removes Unit column and NA's
+mydata$Units <- NULL
+is.na(mydata)
+mydata <- na.omit(mydata)
+
+
+#Converts the data format for analytic purposes
+mydata$Volcano <- as.factor(mydata$Volcano)
+mydata$DepthInKilo <- as.numeric(mydata$DepthInKilo)
+mydata$DistanceInKilo <- as.numeric(mydata$DistanceInKilo)
+
+#Confirms data format conversaion 
+class(mydata$Volcano)
+class(mydata$DepthInKilo)
+class(mydata$DistanceInKilo)
+head(mydata)
+summary(mydata)
+
+#Saves the Excel
+write.csv(mydata, file ="infm600dataclean.csv")
+
+```
+
