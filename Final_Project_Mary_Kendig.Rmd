@@ -1,0 +1,230 @@
+---
+title: "Final Project"
+author: "Mary Kendig"
+date: "January 17, 2016"
+output: html_document
+---
+
+```{r}
+
+install.packages("tidyr")
+library(tidyr)
+install.packages("dplyr")
+library(dplyr)
+install.packages("reshape2")
+library(reshape2)
+install.packages("ggplot2")
+library(ggplot2)
+install.packages("plotly")
+library(plotly)
+install.packages("readxl")
+library(readxl)
+install.packages("xlsx")
+library(xlsx)
+install.packages("DTK")
+library(DTK)
+install.packages("MASS")
+library(MASS)
+install.packages("plotGoogleMaps")
+library(plotGoogleMaps)
+install.packages("ggmap")
+library(ggmap)
+install.packages("mapproj")
+library(mapproj)
+
+
+mydata <- read.delim("C:/Users/Mary/Documents/R/Try This/Practice R Space/r_programming_bsos_winter2016 WORKING FILE/Notes/Dataset20160112.txt")
+names(mydata)[names(mydata)=="Location"] <- "Volcano"
+mydata <- separate(mydata, "Volcano", c("DistanceInKilo", "DirectionVolcano" ), sep = "km") %>% separate("DirectionVolcano", c("Direction", "Volcano"), sep = "of")
+mydata <- separate(mydata, Depth, c("DepthInKilo", "Units"), sep = "km")
+
+mydata$Units <- NULL
+is.na(mydata)
+mydata <- na.omit(mydata)
+
+
+mydata$Volcano <- as.factor(mydata$Volcano)
+mydata$DepthInKilo <- as.numeric(mydata$DepthInKilo)
+mydata$DistanceInKilo <- as.numeric(mydata$DistanceInKilo)
+class(mydata$Volcano)
+class(mydata$DepthInKilo)
+class(mydata$DistanceInKilo)
+head(mydata)
+summary(mydata)
+```
+
+# T.Tests
+
+```{r}
+earthquake_data <- mydata
+x <- earthquake_data$DepthInKilo[1:50]  
+y <- earthquake_data$Magnitude[1:50]
+ttest1 <- t.test(x,y)
+ttest1
+
+e <- earthquake_data$DepthInKilo[1:50]  
+f <- earthquake_data$DistanceInKilo[1:50]
+ttest2 <- t.test(e,f)
+ttest2
+
+g <- earthquake_data$Magnitude[1:50]  
+h <- earthquake_data$DistanceInKilo[1:50]
+ttest3 <- t.test(g,h)
+ttest3
+```
+
+
+# Correlation Tests
+
+```{r}
+mycor <- mydata
+mycorresults <- cor.test(mycor$Magnitude, mycor$DepthInKilo, method = "pearson")
+mycorresults
+
+mycorresults2 <- cor.test(mycor$Magnitude, mycor$DistanceInKilo, method = "pearson")
+mycorresults2
+
+mycorresults3 <- cor.test(mycor$DistanceInKilo, mycor$DepthInKilo, method = "pearson")
+mycorresults3
+
+```
+
+# Variance Tests
+
+```{r}
+myvar <- mydata
+a <- myvar$DepthInKilo[1:50]  
+b <- myvar$Magnitude[1:50]
+myvarresults <- var.test(a,b)
+myvarresults 
+
+c <- myvar$Magnitude[1:50]
+d <- myvar$DistanceInKilo[1:50]
+myvarresults2 <- var.test(c,d)
+myvarresults2
+
+
+m <- myvar$DepthInKilo[1:50]
+n <- myvar$DistanceInKilo[1:50]
+myvarresults2 <- var.test(c,d)
+myvarresults2
+```
+
+## Complex Tests
+
+# One-way Anova
+```{r}
+anova_data <- mydata
+plot(Magnitude ~ Volcano, data=anova_data)
+anova_results1 <- aov(Magnitude ~ Volcano, data = anova_data)
+summary(anova_results)
+model.tables(anova_results1, "means")
+
+plot(DepthInKilo ~ Volcano, data=anova_data)
+anova_results2 <- aov(DepthInKilo ~ Volcano, data = anova_data)
+summary(anova_results2)
+model.tables(anova_results2, "means")
+```
+
+# Two Way Anova
+```{r}
+dos_anova <- aov(Magnitude ~ Volcano + Direction + Volcano:Direction, data = anova_data)
+summary(dos_anova)
+model.tables(dos_anova, "means")
+
+```
+
+# Turkey - Kramer
+```{r}
+
+TukeyHSD(dos_anova)
+
+
+```
+
+# Multiple Linear Regression
+```{r}
+mlr_data <- mydata
+mlr <- c("Volcano", "Magnitude", "DepthInKilo", "DistanceInKilo")
+mlrvar <- mlr_data[mlr]
+head(mlrvar)
+
+myresults <- lm(Magnitude ~ DepthInKilo + DistanceInKilo, data = mlrvar)
+summary(myresults)
+
+table <- summary(myresults)$coefficients
+table
+myestimate <- table[2, "Estimate"]
+my.std.err <- table[2, "Std. Error"]
+
+myestimate
+my.std.err
+
+
+```
+
+
+
+## Graphs
+# Historgram
+```{r}
+mygraph <- mydata
+
+MagHist <- ggplot(mygraph, aes(x = Magnitude)) + geom_histogram(binwidth = .4) + xlab("Magnitude") + ylab("Count") + labs(title = "Histogram of Earthquake Magnitude") + theme(plot.background = element_rect(fill = "darkslateblue")) + theme(plot.title = element_text(colour = "white")) + theme(axis.text = element_text(colour = "white")) + theme(axis.title.x=element_text(colour = "white")) + theme(axis.title.y=element_text(colour = "white"))
+
+MagHist
+
+DepMag <- ggplot(mygraph, aes(x = DepthInKilo)) + geom_histogram(binwidth = 4) + xlab("Depth (km)") + ylab("Count") + labs(title = "Histogram of Earthquake Depth") + theme(plot.background = element_rect(fill = "darkslateblue")) + theme(plot.title = element_text(colour = "white")) + theme(axis.text = element_text(colour = "white")) + theme(axis.title.x=element_text(colour = "white")) + theme(axis.title.y=element_text(colour = "white"))
+
+DepMag
+``` 
+
+# Box Plot
+```{r}
+myboxplot <- mydata
+
+boxplot <- ggplot(myboxplot, aes(x = Magnitude, y = Volcano)) + geom_count() +   xlab("Magnitude") + ylab("Volcano") + labs(title = "Mangitude Frequency of Icelandic Volcanoes") + theme(plot.background = element_rect(fill = "darkslateblue")) + theme(plot.title = element_text(colour = "white")) + theme(axis.text = element_text(colour = "white")) + theme(axis.title.x=element_text(colour = "white")) + theme(axis.title.y=element_text(colour = "white"))
+
+boxplot
+```
+
+# Dot Plot
+```{r}
+factorplot <- mydata
+
+DisVol <- ggplot(factorplot, aes(x = DistanceInKilo, y = Volcano)) + geom_point(aes(color = Direction), size = 5) + geom_count() + theme_gray() + xlab("Distance from Volcano (KM)") + ylab("Volcano") + labs(title = "Location and Frequency of Earthquake Activity") + scale_x_continuous(breaks = c(5, 10, 15, 20, 25, 30,35,40)) + theme(plot.background = element_rect(fill = "darkslateblue")) + theme(plot.title = element_text(colour = "white")) + theme(axis.text = element_text(colour = "white")) + theme(axis.title.x=element_text(colour = "white")) + theme(axis.title.y=element_text(colour = "white"))
+
+DisVol
+```
+
+
+
+# Scatter Plots
+```{r}
+scatterplot <- mydata
+
+MagDep <- ggplot(scatterplot, aes(x = Magnitude, y = DepthInKilo)) + geom_smooth() + geom_point() + facet_wrap(~ Volcano) + xlab("Magnitude") + ylab("Depth (km)") + labs(title = "Earthquake Magnitude VS Depth") + theme(plot.background = element_rect(fill = "darkslateblue")) + theme(plot.title = element_text(colour = "white")) + theme(axis.text = element_text(colour = "white")) + theme(axis.title.x=element_text(colour = "white")) + theme(axis.title.y=element_text(colour = "white"))
+
+MagDep
+
+DisMag <- ggplot(scatterplot, aes(x = DistanceInKilo, y = Magnitude)) + geom_point() + geom_smooth() + xlab("Distance from Volcano (KM)") + ylab("Magnitude") + theme_bw() +labs(title = "Distance from Volcano VS Magnitude") + theme(panel.background = element_rect(fill = "black")) + theme(plot.background = element_rect(fill = "darkslateblue")) + theme(plot.title = element_text(colour = "white")) + theme(axis.text = element_text(colour = "white")) + theme(axis.title.x=element_text(colour = "white")) + theme(axis.title.y=element_text(colour = "white"))
+
+DisMag
+
+```
+
+# Bubble Maps
+```{r}
+bumaps <- mydata
+
+map <- get_map(location = 'Iceland', zoom = 6)
+ggmap(map)
+
+mappoints <- ggmap(map) + geom_point(aes( x = Longitude, y = Latitude, color = Magnitude), data = bumaps)
+
+coolmap <- mappoints + xlab("Longitude") + ylab("Latitude") + labs(title = "Location of Icelandic Earthquakes") + theme(plot.background = element_rect(fill = "darkslateblue")) + theme(plot.title = element_text(colour = "white")) + theme(axis.text = element_text(colour = "white")) + theme(axis.title.x=element_text(colour = "white")) + theme(axis.title.y=element_text(colour = "white"))
+
+coolmap
+
+```
+
