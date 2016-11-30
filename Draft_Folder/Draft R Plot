@@ -3,4 +3,28 @@ mapgilbert <- get_map(location = 'Iceland', zoom = 6, maptype = "satellite")
 
 # plotting the map with some points on it
 plotmap <- ggmap(mapgilbert) +
-  geom_point(data = data, aes(x = Longitude, y = Latitude,color=Magnitude), size = 2) + guides(fill=FALSE, alpha=FALSE, size=FALSE) + scale_color_gradient(low = "red")
+  geom_point(data = data, aes(x = Longitude, y = Latitude,color=Magnitude), size = 2) + 
+  guides(fill=FALSE, alpha=FALSE, size=FALSE) + scale_color_gradient(low = "red")
+  
+  # Relation between maginitude and distance from Volcano
+  
+```{r}
+scatterplot <- mydata
+
+MagDep <- ggplot(scatterplot, aes(x = Magnitude, y = DepthInKilo)) + geom_smooth() + geom_point() + 
+facet_wrap(~ Volcano) + xlab("Magnitude") + ylab("Depth (km)") + labs(title = "Earthquake Activity near Volcanoes") + 
+theme(plot.background = element_rect(fill = "darkslateblue")) + theme(plot.title = element_text(colour = "white")) + 
+theme(axis.text = element_text(colour = "white")) + theme(axis.title.x=element_text(colour = "white")) + 
+theme(axis.title.y=element_text(colour = "white"))
+
+MagDep
+
+DisMag <- ggplot(scatterplot, aes(x = DistanceInKilo, y = Magnitude)) + geom_smooth(col="red") + xlab("Distance from Volcano (KM)") + 
+ylab("Magnitude") + theme_grey() +labs(title = "Distance from Volcano VS Magnitude") + 
+theme(panel.background = element_rect(fill = "black")) + theme(plot.title = element_text(colour = "black")) + 
+theme(axis.text = element_text(colour = "black")) + theme(axis.title.x=element_text(colour = "black")) + 
+theme(axis.title.y=element_text(colour = "black"))
+
+DisMag
+
+```
