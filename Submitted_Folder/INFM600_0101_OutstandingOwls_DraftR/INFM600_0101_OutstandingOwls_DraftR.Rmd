@@ -1,0 +1,217 @@
+---
+title: "INFM600"
+author: "Mary Kendig"
+date: "January 17, 2016"
+output: html_document
+---
+
+```{r}
+# Installs various R Packages 
+install.packages("tidyr")
+library(tidyr)
+install.packages("dplyr")
+library(dplyr)
+install.packages("reshape2")
+library(reshape2)
+install.packages("ggplot2")
+library(ggplot2)
+install.packages("plotly")
+library(plotly)
+install.packages("readxl")
+library(readxl)
+install.packages("xlsx")
+library(xlsx)
+install.packages("DTK")
+library(DTK)
+install.packages("MASS")
+library(MASS)
+install.packages("plotGoogleMaps")
+library(plotGoogleMaps)
+install.packages("ggmap")
+library(ggmap)
+install.packages("mapproj")
+library(mapproj)
+
+
+# Read in the volcanic data
+mydata <- read.csv(file.choose())
+
+
+# Views the top 5 rows of the dataset to confirm read success
+head(mydata)
+
+
+```
+
+# Descriptive Statistics 
+
+```{r}
+# Calculates the Mean, Median, Min, Max 
+summary(mydata)
+
+# Calculates the Standard Deviation for the Magnitude, Depth, and Distance from Volcano 
+sd(mydata$Magnitude)
+sd(mydata$DepthInKilo)
+sd(mydata$DistanceInKilo)
+```
+
+# Descriptive Statistics with Specific Dates
+
+```{r}
+# Exploring September 9/29/2016 and 9/30/2016
+ddata <- mydata
+
+# Subsets data by dates in different variables 
+a <- ddata[ddata$Date == "30/09/2016", ] 
+b <- ddata[ddata$Date == "29/09/2016", ] 
+c <- ddata[ddata$Date == "1/10/2016", ] 
+
+
+
+# Descriptive Statistics for the data subsets 
+summary(a)
+summary(b)
+summary(c)
+
+
+# Re-merges earthquakes from 9/29/2016 and 9/30/2016
+ab <- rbind(a, b)
+
+
+# Descriptive Statistics for 9/29/2016 and 9/30/2016
+summary(ab)
+
+# Subsets data by max magnitude for 9/29/2016
+etrigger <- a[ab$Magnitude == "3.6",  ] 
+
+# Subsets data by volcano Habunga
+eswarm <- ab[ab$Volcano == "Hábunga", ] 
+
+
+# Subsets data by all magnitudes except 3.6 for Habunga
+eswarm <- eswarm[eswarm$Magnitude != 3.6, ]
+
+#Descriptive statistics for all magnitudes except 3.6 for Habunga on 9/29/2016 and 9/30/2016
+summary(eswarm)
+
+```
+
+# T.Tests
+
+```{r}
+# T Test to see if the mean between the three most active volcanoes is statistically different 
+levels(mydata$Volcano)
+tdata <- mydata
+
+#Separates the three most active volcanoes from the full data set
+x <- tdata[tdata$Volcano == "Hábunga", ] 
+y <- tdata[tdata$Volcano == "Bárðarbunga", ] 
+z <- tdata[tdata$Volcano == "GrÃ???msey", ] 
+
+#Stores the t test results into variables 
+ttest1 <- t.test(x$Magnitude,y$Magnitude)
+ttest2 <-t.test(x$Magnitude,z$Magnitude)
+ttest3 <- t.test(z$Magnitude,y$Magnitude)
+
+# Views the t test results
+ttest1
+ttest2
+ttest3
+
+```
+
+
+# Correlation Tests
+
+```{r}
+
+# Tests the correlation between Magnitude and Depth
+mycor <- mydata
+mycorresults <- cor.test(mycor$Magnitude, mycor$DepthInKilo, method = "pearson")
+
+#View the correlation test results 
+mycorresults
+
+```
+
+## Complex Tests
+
+# One-way Anova
+```{r}
+
+# Prepares data for one-way anova test
+anova_data <- mydata
+plot(Magnitude ~ Volcano, data=anova_data)
+
+# Runs one-way anova test for Magnitude
+anova_results1 <- aov(Magnitude ~ Volcano, data = anova_data)
+
+# View results 
+summary(anova_results)
+model.tables(anova_results1, "means")
+
+# Runs a one-way anova test for Depth
+plot(DepthInKilo ~ Volcano, data=anova_data)
+anova_results2 <- aov(DepthInKilo ~ Volcano, data = anova_data)
+summary(anova_results2)
+model.tables(anova_results2, "means")
+```
+
+# Two Way Anova
+```{r}
+# Runs a Two Way Anova for Direction and Volcano 
+dos_anova <- aov(Magnitude ~ Volcano + Direction + Volcano:Direction, data = anova_data)
+summary(dos_anova)
+model.tables(dos_anova, "means")
+
+```
+
+
+# Multiple Linear Regression
+```{r}
+
+# Creates a vector containing Volcano, Magnitude, DepthInKilo and Distance in Kilo
+mlr_data <- mydata
+mlr <- c("Volcano", "Magnitude", "DepthInKilo", "DistanceInKilo")
+mlrvar <- mlr_data[mlr]
+head(mlrvar)
+
+
+# Runs the Multiple Linear Regression
+myresults <- lm(Magnitude ~ DepthInKilo + DistanceInKilo, data = mlrvar)
+summary(myresults)
+
+# Views the coefficients 
+table <- summary(myresults)$coefficients
+table
+
+# Calculates the standard error
+myestimate <- table[2, "Estimate"]
+my.std.err <- table[2, "Std. Error"]
+
+# Views the standard error
+myestimate
+my.std.err
+
+
+```
+
+
+
+## Graphs
+# Historgram
+```{r}
+
+# Simple histograms graph to understand the data 
+
+mygraph <- mydata
+
+MagHist <- ggplot(mygraph, aes(x = Magnitude)) + geom_histogram(binwidth = .4) + xlab("Magnitude") + ylab("Count") + labs(title = "Histogram of Earthquake Magnitude") + theme(plot.background = element_rect(fill = "darkslateblue")) + theme(plot.title = element_text(colour = "white")) + theme(axis.text = element_text(colour = "white")) + theme(axis.title.x=element_text(colour = "white")) + theme(axis.title.y=element_text(colour = "white"))
+
+MagHist
+
+DepMag <- ggplot(mygraph, aes(x = DepthInKilo)) + geom_histogram(binwidth = 4) + xlab("Depth (km)") + ylab("Count") + labs(title = "Histogram of Earthquake Depth") + theme(plot.background = element_rect(fill = "darkslateblue")) + theme(plot.title = element_text(colour = "white")) + theme(axis.text = element_text(colour = "white")) + theme(axis.title.x=element_text(colour = "white")) + theme(axis.title.y=element_text(colour = "white"))
+
+DepMag
+``` 
+
