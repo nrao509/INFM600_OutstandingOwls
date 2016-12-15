@@ -1,0 +1,66 @@
+---
+title: "Draft R Plot Notebook"
+author: "Neeraj Shirname"
+date: "December 14, 2016"
+output: html_notebook
+---
+
+
+
+```{r}
+# Code to Install Packages
+
+install.packages("ggplot2")
+library(ggplot2)
+install.packages("plotGoogleMaps")
+library(plotGoogleMaps)
+install.packages("ggmap")
+library(ggmap)
+
+
+# Code to Read data  
+mydata <- read.csv(file.choose())
+mydata
+```
+
+
+# Scatter Plot depicting Earthquake Activity Near Active Volcanos
+```{r}
+scatterplot <- mydata
+
+MagDep <- ggplot(scatterplot, aes(x = Magnitude, y = DepthInKilo)) + geom_smooth() + geom_point() + 
+facet_wrap(~ Volcano) + xlab("Magnitude") + ylab("Depth (km)") + labs(title = "Earthquake Activity near Volcanoes") + 
+theme(plot.background = element_rect(fill = "darkslateblue")) + theme(plot.title = element_text(colour = "white")) + 
+theme(axis.text = element_text(colour = "white")) + theme(axis.title.x=element_text(colour = "white")) + 
+theme(axis.title.y=element_text(colour = "white"))
+suppressWarnings(print(MagDep))
+```
+This scatter plot helps us identify the frequency of earthquake activity around Volcanos.
+It is evident from the plot above that the volcanos 'Habunga', 'Bardarbunga', 'Eyjafjallajokull' are some of the most active ones in terms of earthquake activity. It is also worth noting that the depth in Kilometers of the earthquakes near Volcano 'Dreki' vary a lot compared to other areas. 
+
+
+# Scatter Plot depicting Relation between Magnitude and Distance in Kilometers
+```{r}
+DisMag <- ggplot(scatterplot, aes(x = DistanceInKilo, y = Magnitude)) + geom_smooth(col="red") + xlab("Distance from Volcano (KM)") + 
+ylab("Magnitude") + theme_grey() +labs(title = "Distance from Volcano VS Magnitude") + 
+theme(panel.background = element_rect(fill = "black")) + theme(plot.title = element_text(colour = "black")) + 
+theme(axis.text = element_text(colour = "black")) + theme(axis.title.x=element_text(colour = "black")) + 
+theme(axis.title.y=element_text(colour = "black"))
+DisMag
+```
+This plot helps us understand the relationship between the Magnitude of an Earthquake and the Distance between the point of occurrence and the nearest Volcano. As we can see in the above visualisation, as the Distance from the Volcano increases, the variation in Magnitude of the Earthquakes tends to decrease. Another pattern worth noting is that the Earthquakes with the highest Magnitudes are the ones which are relatively closer to the Volcanos (hence the spikes in the graph where distances are less than 12 Km).
+
+# Map to Visualize which Areas in Iceland are affected the most by Earthquake Activity 
+
+```{r}
+# getting the map
+icelandmap <- get_map(location = 'Iceland', zoom = 6, maptype = "satellite")
+
+# plotting the map with some points on it
+plotmap <- ggmap(icelandmap) +
+geom_point(data = data, aes(x = Longitude, y = Latitude,color=Magnitude), size = 2) + 
+guides(fill=FALSE, alpha=FALSE, size=FALSE) + scale_color_gradient(low = "red") + xlab("Longitude") + ylab("Latitude") + labs(title= "Icelandic Earthquakes")
+plotmap
+```
+The above visualization depicts which regions of Iceland are most prone to earthquakes. As we can see in the above plot, the southern, northern and central (towards eastern side) regions of Iceland have the most occurrence of earthquakes. The color-coded data points on the map also indicate the earthquakes with low to high magnitudes. 
+
